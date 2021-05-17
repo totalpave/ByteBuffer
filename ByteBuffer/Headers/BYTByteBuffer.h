@@ -327,7 +327,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @return An UTF8 string.
  * @throw NSRangeException, NSInvalidArgumentException.
  */
-- (NSString*)getUTF8String:(NSUInteger)length;
+- (NSString*)getUTF8StringWithLength:(NSUInteger)length;
 /**
  * Gets one or more bytes of data.
  *

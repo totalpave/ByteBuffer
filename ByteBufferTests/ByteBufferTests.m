@@ -293,7 +293,7 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(12345.6789, [self.byteBuffer getDouble]);
 }
 
-- (void)testGetUTF8String {
+- (void)testGetUTF8StringWithLength {
     // Note the first and second strings has a single 2-byte character. The number of bytes will not match the number of characters.
                        // 1 character with 2 bytes
     [[[self.byteBuffer putData:[@"Ā" dataUsingEncoding:NSUTF8StringEncoding]]
@@ -303,20 +303,19 @@ static const NSUInteger kDefaultCapacity = 256;
                        putData:[@"the" dataUsingEncoding:NSUTF8StringEncoding]];
    
     [self.byteBuffer flip];
-
-    NSString *a = [self.byteBuffer getUTF8String:2];
+    NSString *a = [self.byteBuffer getUTF8StringWithLength:2];
     XCTAssertEqualObjects(@"Ā", a);
     XCTAssertEqual(2, self.byteBuffer.position);
 
-    NSString *b = [self.byteBuffer getUTF8String:31];
+    NSString *b = [self.byteBuffer getUTF8StringWithLength:31];
     XCTAssertEqualObjects(@"the dog walked Ācross the road", b);
     XCTAssertEqual(33, self.byteBuffer.position);
 
-    NSString *c = [self.byteBuffer getUTF8String:3];
+    NSString *c = [self.byteBuffer getUTF8StringWithLength:3];
     XCTAssertEqualObjects(@"the", c);
     XCTAssertEqual(36, self.byteBuffer.position);
 
-    XCTAssertThrowsSpecificNamed([self.byteBuffer getUTF8String:0], NSException, NSInvalidArgumentException);
+    XCTAssertThrowsSpecificNamed([self.byteBuffer getUTF8StringWithLength:0], NSException, NSInvalidArgumentException);
 }
 
 - (void)testGetDataWithLength {

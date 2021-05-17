@@ -385,7 +385,7 @@
     return value;
 }
 
-- (NSString*)getUTF8String:(NSUInteger)length {
+- (NSString*)getUTF8StringWithLength:(NSUInteger)length {
     // All necessary validation is done in getDataWithLength.
     NSData *data = [self getDataWithLength:length];
     // Don't increase the position because getDataWithLength manages the position
