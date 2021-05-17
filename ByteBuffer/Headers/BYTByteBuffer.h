@@ -321,6 +321,22 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (double)getDouble;
 /**
+ * Gets one or more bytes as an UTF8 String.
+ *
+ * @param length The number of bytes to read. Must be greater than 0.
+ * @return An UTF8 string.
+ * @throw NSRangeException, NSInvalidArgumentException.
+ */
+- (NSString*)getUTF8String:(NSUInteger)length;
+/**
+ * Gets one or more bytes of data.
+ *
+ * @param length The number of bytes to read. Must be greater than 0.
+ * @return One or more bytes of data.
+ * @throw NSRangeException, NSInvalidArgumentException.
+ */
+- (NSData *)getDataWithLength:(NSUInteger)length;
+/**
  * Gets one byte data.
  *
  * @return One byte data.

@@ -385,6 +385,33 @@
     return value;
 }
 
+- (NSString*)getUTF8String:(NSUInteger)length {
+    // All necessary validation is done in getDataWithLength.
+    NSData *data = [self getDataWithLength:length];
+    // Don't increase the position because getDataWithLength manages the position
+    const char *datas = [data bytes];
+    return [[NSString alloc] initWithUTF8String:datas];
+}
+
+- (NSData *)getDataWithLength:(NSUInteger)length {
+    if (length == 0) {
+        @throw [NSException exceptionWithName:NSInvalidArgumentException
+                                        reason:@"Length must be greater than 0."
+                                     userInfo:nil];
+    }
+    
+    if (self.position >= self.limit) {
+        @throw [NSException exceptionWithName:NSRangeException
+                                       reason:@"Overflow."
+                                     userInfo:nil];
+    }
+
+    NSData *data = [self.buff subdataWithRange:NSMakeRange(self.position, length)];
+    self.position += length;
+
+    return data;
+}
+
 - (NSData *)getData {
     if (self.position >= self.limit) {
         @throw [NSException exceptionWithName:NSRangeException
