@@ -209,11 +209,26 @@
     return [NSData dataWithBytes:&value length:sizeof(value)];
 }
 
+#pragma mark - private method
+
+- (NSData*)_byt_swapByteOrder:(NSData*)subdata {
+    uint8_t bytes[subdata.length];
+    uint8_t reversedBytes[subdata.length];
+    [subdata getBytes:bytes length:subdata.length];
+    for (int i = 0; i < subdata.length; ++i) {
+        reversedBytes[i] = bytes[subdata.length - 1 - i];
+    }
+    return [[NSData alloc] initWithBytes:reversedBytes length:subdata.length];
+}
+
 #pragma mark - public method
 
-- (NSInteger)byt_toIntegerWithLocation:(NSUInteger)loc {
+- (NSInteger)byt_toIntegerWithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder {
     NSInteger value;
     NSData *data = [self subdataWithRange:NSMakeRange(loc, sizeof(value))];
+    if (swapByteOrder) {
+        data = [self _byt_swapByteOrder:data];
+    }
     [data getBytes:&value length:sizeof(value)];
 
     return value;

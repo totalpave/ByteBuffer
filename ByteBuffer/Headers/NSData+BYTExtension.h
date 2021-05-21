@@ -208,9 +208,10 @@ NS_ASSUME_NONNULL_BEGIN
  * Converts the receiver using given starting location to NSInteger.
  *
  * @param loc A starting location of range.
+ * @param swapByteOrder Flag to indicate the ByteOrder to read data in. If true, and system byte order is big endian, data will be read in little endian and vice versa.
  * @return A value.
  */
-- (NSInteger)byt_toIntegerWithLocation:(NSUInteger)loc;
+- (NSInteger)byt_toIntegerWithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to NSUInteger.
  *

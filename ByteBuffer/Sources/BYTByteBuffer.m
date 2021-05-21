@@ -14,19 +14,33 @@
 
 @property (nonatomic) NSUInteger capacity;
 @property (nonatomic) NSMutableData *buff;
+@property (nonatomic) CFByteOrder byteOrder;
 
 @end
 
-@implementation BYTByteBuffer
-
-+ (instancetype)allocateWithCapacity:(NSUInteger)capacity {
-    return [[BYTByteBuffer alloc] initWithCapacity:capacity];
+@implementation BYTByteBuffer {
+    CFByteOrder _systemByteOrder;
 }
 
-- (instancetype)initWithCapacity:(NSUInteger)capacity {
++ (instancetype)allocateWithCapacity:(NSUInteger)capacity byteOrder:(CFByteOrder)byteOrder {
+    if (byteOrder == CFByteOrderUnknown) {
+        return [self allocateWithCapacity:capacity];
+    }
+    else {
+        return [[BYTByteBuffer alloc] initWithCapacity:capacity byteOrder:byteOrder];
+    }
+}
+
++ (instancetype)allocateWithCapacity:(NSUInteger)capacity {
+    return [self allocateWithCapacity:capacity byteOrder:[BYTByteBuffer _getSystemByteOrder]];
+}
+
+- (instancetype)initWithCapacity:(NSUInteger)capacity byteOrder:(CFByteOrder)byteOrder {
     self = [super init];
+    self->_systemByteOrder = [BYTByteBuffer _getSystemByteOrder];
 
     if (self) {
+        _byteOrder = byteOrder;
         _capacity = capacity;
         _limit = capacity;
         _position = 0;
@@ -77,10 +91,38 @@
     return self.remaining > 0;
 }
 
+#pragma mark - private method
++ (CFByteOrder)_getSystemByteOrder {
+    CFByteOrder currentOrder = CFByteOrderGetCurrent();
+    if (currentOrder == CFByteOrderUnknown) {
+        int16_t number = 0x1; // Store the number 1 in a 2-byte int
+        int8_t* numPtr = (int8_t*)&number; // cast the 2-byte int to 1-byte int
+        // Look at the byte that the 1-byte int has. If it is 1, then we are in little endian, otherwise big endian.
+        return numPtr[0] == 1 ? CFByteOrderBigEndian : CFByteOrderLittleEndian;
+    }
+    else {
+        return currentOrder;
+    }
+}
+
+- (instancetype)_putData:(NSData *)data swapByteOrder:(BOOL)swapByteOrder {
+    if (swapByteOrder) {
+        uint8_t bytes[data.length];
+        uint8_t reversedBytes[data.length];
+        [data getBytes:bytes length:data.length];
+        for (int i = 0; i < data.length; ++i) {
+            reversedBytes[i] = bytes[data.length - 1 - i];
+        }
+        data = [[NSData alloc] initWithBytes:reversedBytes length:data.length];
+    }
+    
+    return [self putData:data];
+}
+
 #pragma mark - public method
 
 - (instancetype)putInteger:(NSInteger)i {
-    return [self putData:[NSData byt_dataWithInteger:i]];
+    return [self _putData:[NSData byt_dataWithInteger:i] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putUInteger:(NSUInteger)i {
@@ -170,8 +212,7 @@
                                        reason:@"Overflow."
                                      userInfo:nil];
     }
-
-    NSInteger value = [self.buff byt_toIntegerWithLocation:self.position];
+    NSInteger value = [self.buff byt_toIntegerWithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
