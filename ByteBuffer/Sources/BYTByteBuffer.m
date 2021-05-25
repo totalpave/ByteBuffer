@@ -14,12 +14,12 @@
 
 @property (nonatomic) NSUInteger capacity;
 @property (nonatomic) NSMutableData *buff;
-@property (nonatomic) CFByteOrder byteOrder;
 
 @end
 
 @implementation BYTByteBuffer {
     CFByteOrder _systemByteOrder;
+    CFByteOrder _byteOrder;
 }
 
 + (instancetype)allocateWithCapacity:(NSUInteger)capacity byteOrder:(CFByteOrder)byteOrder {
@@ -40,7 +40,7 @@
     self->_systemByteOrder = [BYTByteBuffer _getSystemByteOrder];
 
     if (self) {
-        _byteOrder = byteOrder;
+        self->_byteOrder = byteOrder;
         _capacity = capacity;
         _limit = capacity;
         _position = 0;
@@ -58,6 +58,19 @@
 }
 
 #pragma mark - property
+
+- (void)setByteOrder:(CFByteOrder)byteOrder {
+    if (byteOrder == CFByteOrderUnknown) {
+        self->_byteOrder = [BYTByteBuffer _getSystemByteOrder];
+    }
+    else {
+        self->_byteOrder = byteOrder;
+    }
+}
+
+- (CFByteOrder)getByteOrder {
+    return self->_byteOrder;
+}
 
 - (void)setPosition:(NSUInteger)position {
     if (position > self.limit) {
@@ -126,11 +139,11 @@
 }
 
 - (instancetype)putUInteger:(NSUInteger)i {
-    return [self putData:[NSData byt_dataWithUInteger:i]];
+    return [self _putData:[NSData byt_dataWithUInteger:i] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putShort:(short)s {
-    return [self putData:[NSData byt_dataWithShort:s]];
+    return [self _putData:[NSData byt_dataWithShort:s] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putInt8:(int8_t)i {
@@ -142,51 +155,51 @@
 }
 
 - (instancetype)putInt16:(int16_t)i {
-    return [self putData:[NSData byt_dataWithInt16:i]];
+    return [self _putData:[NSData byt_dataWithInt16:i] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putUInt16:(uint16_t)i {
-    return [self putData:[NSData byt_dataWithUInt16:i]];
+    return [self _putData:[NSData byt_dataWithUInt16:i] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putInt32:(int32_t)i {
-    return [self putData:[NSData byt_dataWithInt32:i]];
+    return [self _putData:[NSData byt_dataWithInt32:i] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putUInt32:(uint32_t)i {
-    return [self putData:[NSData byt_dataWithUInt32:i]];
+    return [self _putData:[NSData byt_dataWithUInt32:i] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putInt64:(int64_t)i {
-    return [self putData:[NSData byt_dataWithInt64:i]];
+    return [self _putData:[NSData byt_dataWithInt64:i] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putUInt64:(uint64_t)i {
-    return [self putData:[NSData byt_dataWithUInt64:i]];
+    return [self _putData:[NSData byt_dataWithUInt64:i] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putInt:(int)i {
-    return [self putData:[NSData byt_dataWithInt:i]];
+    return [self _putData:[NSData byt_dataWithInt:i] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putUInt:(unsigned int)i {
-    return [self putData:[NSData byt_dataWithUInt:i]];
+    return [self _putData:[NSData byt_dataWithUInt:i] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putLong:(long)l {
-    return [self putData:[NSData byt_dataWithLong:l]];
+    return [self _putData:[NSData byt_dataWithLong:l] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putLongLong:(long long)ll {
-    return [self putData:[NSData byt_dataWithLongLong:ll]];
+    return [self _putData:[NSData byt_dataWithLongLong:ll] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putFloat:(float)f {
-    return [self putData:[NSData byt_dataWithFloat:f]];
+    return [self _putData:[NSData byt_dataWithFloat:f] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putDouble:(double)d {
-    return [self putData:[NSData byt_dataWithDouble:d]];
+    return [self _putData:[NSData byt_dataWithDouble:d] swapByteOrder:self->_systemByteOrder != self->_byteOrder];
 }
 
 - (instancetype)putUTF8String:(NSString *)string {
@@ -225,7 +238,7 @@
                                      userInfo:nil];
     }
 
-    NSUInteger value = [self.buff byt_toUIntegerWithLocation:self.position];
+    NSUInteger value = [self.buff byt_toUIntegerWithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
@@ -238,7 +251,7 @@
                                      userInfo:nil];
     }
 
-    short value = [self.buff byt_toShortWithLocation:self.position];
+    short value = [self.buff byt_toShortWithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
@@ -277,7 +290,7 @@
                                      userInfo:nil];
     }
 
-    int16_t value = [self.buff byt_toInt16WithLocation:self.position];
+    int16_t value = [self.buff byt_toInt16WithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
@@ -290,7 +303,7 @@
                                      userInfo:nil];
     }
 
-    uint16_t value = [self.buff byt_toUInt16WithLocation:self.position];
+    uint16_t value = [self.buff byt_toUInt16WithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
@@ -303,7 +316,7 @@
                                      userInfo:nil];
     }
 
-    int32_t value = [self.buff byt_toInt32WithLocation:self.position];
+    int32_t value = [self.buff byt_toInt32WithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
@@ -316,7 +329,7 @@
                                      userInfo:nil];
     }
 
-    uint32_t value = [self.buff byt_toUInt32WithLocation:self.position];
+    uint32_t value = [self.buff byt_toUInt32WithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
@@ -329,7 +342,7 @@
                                      userInfo:nil];
     }
 
-    int64_t value = [self.buff byt_toInt64WithLocation:self.position];
+    int64_t value = [self.buff byt_toInt64WithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
@@ -342,7 +355,7 @@
                                      userInfo:nil];
     }
 
-    uint64_t value = [self.buff byt_toUInt64WithLocation:self.position];
+    uint64_t value = [self.buff byt_toUInt64WithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
@@ -355,7 +368,7 @@
                                      userInfo:nil];
     }
 
-    int value = [self.buff byt_toIntWithLocation:self.position];
+    int value = [self.buff byt_toIntWithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
@@ -368,7 +381,7 @@
                                      userInfo:nil];
     }
 
-    unsigned int value = [self.buff byt_toUIntWithLocation:self.position];
+    unsigned int value = [self.buff byt_toUIntWithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
@@ -381,7 +394,7 @@
                                      userInfo:nil];
     }
 
-    long value = [self.buff byt_toLongWithLocation:self.position];
+    long value = [self.buff byt_toLongWithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
@@ -394,7 +407,7 @@
                                      userInfo:nil];
     }
 
-    long long value = [self.buff byt_toLongLongWithLocation:self.position];
+    long long value = [self.buff byt_toLongLongWithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
@@ -407,7 +420,7 @@
                                      userInfo:nil];
     }
 
-    float value = [self.buff byt_toFloatWithLocation:self.position];
+    float value = [self.buff byt_toFloatWithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;
@@ -420,7 +433,7 @@
                                      userInfo:nil];
     }
 
-    double value = [self.buff byt_toDoubleWithLocation:self.position];
+    double value = [self.buff byt_toDoubleWithLocation:self.position swapByteOrder: self->_systemByteOrder != self->_byteOrder];
     self.position += sizeof(value);
 
     return value;

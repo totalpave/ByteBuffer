@@ -12,10 +12,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface BYTByteBuffer : NSObject
 /**
- * Returns this buffer's ByteOrder.
- */
-@property (nonatomic, readonly) CFByteOrder byteOrder;
-/**
  * Returns this buffer's capacity.
  */
 @property (nonatomic, readonly) NSUInteger capacity;
@@ -45,6 +41,14 @@ NS_ASSUME_NONNULL_BEGIN
  * Returns YES if `remaining` is greater than zero, otherwise NO.
  */
 @property (nonatomic, readonly) BOOL hasRemaining;
+
+/**
+ * Sets this buffer's ByteOrder.
+ * Passing in CFByteOrderUnknown will reset the byteOrder to the default state.
+ */
+- (void)setByteOrder:(CFByteOrder)byteOrder;
+
+- (CFByteOrder)getByteOrder;
 
 /**
  * Creates the instance with given capacity and ByteOrder.

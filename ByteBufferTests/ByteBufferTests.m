@@ -14,7 +14,8 @@
 @interface ByteBufferTests : XCTestCase
 
 @property (nonatomic) BYTByteBuffer *byteBuffer;
-
+@property (nonatomic) CFByteOrder systemByteOrder;
+@property (nonatomic) CFByteOrder notSystemByteOrder;
 @end
 
 @implementation ByteBufferTests
@@ -25,6 +26,18 @@ static const NSUInteger kDefaultCapacity = 256;
     [super setUp];
 
     self.byteBuffer = [BYTByteBuffer allocateWithCapacity:kDefaultCapacity];
+    
+    CFByteOrder currentOrder = CFByteOrderGetCurrent();
+    if (currentOrder == CFByteOrderUnknown) {
+        int16_t number = 0x1; // Store the number 1 in a 2-byte int
+        int8_t* numPtr = (int8_t*)&number; // cast the 2-byte int to 1-byte int
+        // Look at the byte that the 1-byte int has. If it is 1, then we are in little endian, otherwise big endian.
+        self.systemByteOrder = numPtr[0] == 1 ? CFByteOrderBigEndian : CFByteOrderLittleEndian;
+    }
+    else {
+        self.systemByteOrder = currentOrder;
+    }
+    self.notSystemByteOrder = self.systemByteOrder == CFByteOrderBigEndian ? CFByteOrderLittleEndian : CFByteOrderBigEndian;
 }
 
 - (void)tearDown {
@@ -101,6 +114,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(12345, [self.byteBuffer getInteger]);
 }
 
+-(void)testGetIntegerByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putInteger:2019]
+                       putInteger:-300]
+                       putInteger:12345];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(2019, [self.byteBuffer getInteger]);
+    XCTAssertEqual(-300, [self.byteBuffer getInteger]);
+    XCTAssertEqual(12345, [self.byteBuffer getInteger]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(2019, [self.byteBuffer getInteger]);
+    XCTAssertNotEqual(-300, [self.byteBuffer getInteger]);
+    XCTAssertNotEqual(12345, [self.byteBuffer getInteger]);
+}
+
 - (void)testGetUInteger {
     [[[self.byteBuffer putUInteger:2019]
                        putUInteger:300]
@@ -113,6 +146,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(12345, [self.byteBuffer getUInteger]);
 }
 
+-(void)testGetUIntegerByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putUInteger:2019]
+                       putUInteger:300]
+                       putUInteger:12345];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(2019, [self.byteBuffer getUInteger]);
+    XCTAssertEqual(300, [self.byteBuffer getUInteger]);
+    XCTAssertEqual(12345, [self.byteBuffer getUInteger]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(2019, [self.byteBuffer getUInteger]);
+    XCTAssertNotEqual(300, [self.byteBuffer getUInteger]);
+    XCTAssertNotEqual(12345, [self.byteBuffer getUInteger]);
+}
+
 - (void)testGetShort {
     [[[self.byteBuffer putShort:5]
                        putShort:-3]
@@ -123,6 +176,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(5, [self.byteBuffer getShort]);
     XCTAssertEqual(-3, [self.byteBuffer getShort]);
     XCTAssertEqual(1, [self.byteBuffer getShort]);
+}
+
+-(void)testGetShortByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putShort:5]
+                       putShort:-3]
+                       putShort:1];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(5, [self.byteBuffer getShort]);
+    XCTAssertEqual(-3, [self.byteBuffer getShort]);
+    XCTAssertEqual(1, [self.byteBuffer getShort]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(5, [self.byteBuffer getShort]);
+    XCTAssertNotEqual(-3, [self.byteBuffer getShort]);
+    XCTAssertNotEqual(1, [self.byteBuffer getShort]);
 }
 
 - (void)testGetInt8 {
@@ -161,6 +234,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(1, [self.byteBuffer getInt16]);
 }
 
+-(void)testGetInt16ByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putInt16:32000]
+                       putInt16:-32000]
+                       putInt16:1];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(32000, [self.byteBuffer getInt16]);
+    XCTAssertEqual(-32000, [self.byteBuffer getInt16]);
+    XCTAssertEqual(1, [self.byteBuffer getInt16]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(32000, [self.byteBuffer getInt16]);
+    XCTAssertNotEqual(-32000, [self.byteBuffer getInt16]);
+    XCTAssertNotEqual(1, [self.byteBuffer getInt16]);
+}
+
 - (void)testGetUInt16 {
     [[[self.byteBuffer putUInt16:32000]
                        putUInt16:64000]
@@ -171,6 +264,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(32000, [self.byteBuffer getUInt16]);
     XCTAssertEqual(64000, [self.byteBuffer getUInt16]);
     XCTAssertEqual(1, [self.byteBuffer getUInt16]);
+}
+
+-(void)testGetUInt16ByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putUInt16:32000]
+                       putUInt16:64000]
+                       putUInt16:1];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(32000, [self.byteBuffer getUInt16]);
+    XCTAssertEqual(64000, [self.byteBuffer getUInt16]);
+    XCTAssertEqual(1, [self.byteBuffer getUInt16]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(32000, [self.byteBuffer getUInt16]);
+    XCTAssertNotEqual(64000, [self.byteBuffer getUInt16]);
+    XCTAssertNotEqual(1, [self.byteBuffer getUInt16]);
 }
 
 - (void)testGetInt32 {
@@ -185,6 +298,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(1, [self.byteBuffer getInt32]);
 }
 
+-(void)testGetInt32ByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putInt32:2100000000]
+                       putInt32:-2100000000]
+                       putInt32:1];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(2100000000, [self.byteBuffer getInt32]);
+    XCTAssertEqual(-2100000000, [self.byteBuffer getInt32]);
+    XCTAssertEqual(1, [self.byteBuffer getInt32]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(2100000000, [self.byteBuffer getInt32]);
+    XCTAssertNotEqual(-2100000000, [self.byteBuffer getInt32]);
+    XCTAssertNotEqual(1, [self.byteBuffer getInt32]);
+}
+
 - (void)testGetUInt32 {
     [[[self.byteBuffer putUInt32:2100000000]
                        putUInt32:4200000000]
@@ -195,6 +328,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(2100000000, [self.byteBuffer getUInt32]);
     XCTAssertEqual(4200000000, [self.byteBuffer getUInt32]);
     XCTAssertEqual(1, [self.byteBuffer getUInt32]);
+}
+
+-(void)testGetUInt32ByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putUInt32:2100000000]
+                       putUInt32:4200000000]
+                       putUInt32:1];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(2100000000, [self.byteBuffer getUInt32]);
+    XCTAssertEqual(4200000000, [self.byteBuffer getUInt32]);
+    XCTAssertEqual(1, [self.byteBuffer getUInt32]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(2100000000, [self.byteBuffer getUInt32]);
+    XCTAssertNotEqual(4200000000, [self.byteBuffer getUInt32]);
+    XCTAssertNotEqual(1, [self.byteBuffer getUInt32]);
 }
 
 - (void)testGetInt64 {
@@ -209,6 +362,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(1, [self.byteBuffer getInt64]);
 }
 
+-(void)testGetInt64ByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putInt64:9000000000000000000]
+                       putInt64:-9000000000000000000]
+                       putInt64:1];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(9000000000000000000, [self.byteBuffer getInt64]);
+    XCTAssertEqual(-9000000000000000000, [self.byteBuffer getInt64]);
+    XCTAssertEqual(1, [self.byteBuffer getInt64]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(9000000000000000000, [self.byteBuffer getInt64]);
+    XCTAssertNotEqual(-9000000000000000000, [self.byteBuffer getInt64]);
+    XCTAssertNotEqual(1, [self.byteBuffer getInt64]);
+}
+
 - (void)testGetUInt64 {
     [[[self.byteBuffer putUInt64:9000000000000000000]
                        putUInt64:18000000000000000000]
@@ -219,6 +392,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(9000000000000000000, [self.byteBuffer getUInt64]);
     XCTAssertEqual(18000000000000000000, [self.byteBuffer getUInt64]);
     XCTAssertEqual(1, [self.byteBuffer getUInt64]);
+}
+
+-(void)testGetUInt64ByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putUInt64:9000000000000000000]
+                       putUInt64:18000000000000000000]
+                       putUInt64:1];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(9000000000000000000, [self.byteBuffer getUInt64]);
+    XCTAssertEqual(18000000000000000000, [self.byteBuffer getUInt64]);
+    XCTAssertEqual(1, [self.byteBuffer getUInt64]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(9000000000000000000, [self.byteBuffer getUInt64]);
+    XCTAssertNotEqual(18000000000000000000, [self.byteBuffer getUInt64]);
+    XCTAssertNotEqual(1, [self.byteBuffer getUInt64]);
 }
 
 - (void)testGetInt {
@@ -233,6 +426,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(12345, [self.byteBuffer getInt]);
 }
 
+-(void)testGetIntByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putInt:2019]
+                       putInt:-300]
+                       putInt:12345];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(2019, [self.byteBuffer getInt]);
+    XCTAssertEqual(-300, [self.byteBuffer getInt]);
+    XCTAssertEqual(12345, [self.byteBuffer getInt]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(2019, [self.byteBuffer getInt]);
+    XCTAssertNotEqual(-300, [self.byteBuffer getInt]);
+    XCTAssertNotEqual(12345, [self.byteBuffer getInt]);
+}
+
 - (void)testGetUInt {
     [[[self.byteBuffer putUInt:2019]
                        putUInt:300]
@@ -243,6 +456,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(2019, [self.byteBuffer getUInt]);
     XCTAssertEqual(300, [self.byteBuffer getUInt]);
     XCTAssertEqual(12345, [self.byteBuffer getUInt]);
+}
+
+-(void)testGetUIntByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putUInt:2019]
+                       putUInt:300]
+                       putUInt:12345];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(2019, [self.byteBuffer getUInt]);
+    XCTAssertEqual(300, [self.byteBuffer getUInt]);
+    XCTAssertEqual(12345, [self.byteBuffer getUInt]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(2019, [self.byteBuffer getUInt]);
+    XCTAssertNotEqual(300, [self.byteBuffer getUInt]);
+    XCTAssertNotEqual(12345, [self.byteBuffer getUInt]);
 }
 
 - (void)testGetLong {
@@ -257,6 +490,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(12345L, [self.byteBuffer getLong]);
 }
 
+-(void)testGetLongByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putLong:2019L]
+                       putLong:300000000L]
+                       putLong:12345L];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(2019L, [self.byteBuffer getLong]);
+    XCTAssertEqual(300000000L, [self.byteBuffer getLong]);
+    XCTAssertEqual(12345L, [self.byteBuffer getLong]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(2019L, [self.byteBuffer getLong]);
+    XCTAssertNotEqual(300000000L, [self.byteBuffer getLong]);
+    XCTAssertNotEqual(12345L, [self.byteBuffer getLong]);
+}
+
 - (void)testGetLongLong {
     [[[self.byteBuffer putLongLong:2019LL]
                        putLongLong:300000000000LL]
@@ -267,6 +520,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(2019LL, [self.byteBuffer getLongLong]);
     XCTAssertEqual(300000000000LL, [self.byteBuffer getLongLong]);
     XCTAssertEqual(12345LL, [self.byteBuffer getLongLong]);
+}
+
+-(void)testGetLongLongByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putLongLong:2019LL]
+                       putLongLong:300000000000LL]
+                       putLongLong:12345LL];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(2019LL, [self.byteBuffer getLongLong]);
+    XCTAssertEqual(300000000000LL, [self.byteBuffer getLongLong]);
+    XCTAssertEqual(12345LL, [self.byteBuffer getLongLong]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(2019LL, [self.byteBuffer getLongLong]);
+    XCTAssertNotEqual(300000000000LL, [self.byteBuffer getLongLong]);
+    XCTAssertNotEqual(12345LL, [self.byteBuffer getLongLong]);
 }
 
 - (void)testGetFloat {
@@ -281,6 +554,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(12345.6789f, [self.byteBuffer getFloat]);
 }
 
+-(void)testGetFloatByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putFloat:2019.1f]
+                       putFloat:-300.123f]
+                       putFloat:12345.6789f];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(2019.1f, [self.byteBuffer getFloat]);
+    XCTAssertEqual(-300.123f, [self.byteBuffer getFloat]);
+    XCTAssertEqual(12345.6789f, [self.byteBuffer getFloat]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(2019.1f, [self.byteBuffer getFloat]);
+    XCTAssertNotEqual(-300.123f, [self.byteBuffer getFloat]);
+    XCTAssertNotEqual(12345.6789f, [self.byteBuffer getFloat]);
+}
+
 - (void)testGetDouble {
     [[[self.byteBuffer putDouble:2019.1]
                        putDouble:-300.123]
@@ -291,6 +584,26 @@ static const NSUInteger kDefaultCapacity = 256;
     XCTAssertEqual(2019.1, [self.byteBuffer getDouble]);
     XCTAssertEqual(-300.123, [self.byteBuffer getDouble]);
     XCTAssertEqual(12345.6789, [self.byteBuffer getDouble]);
+}
+
+-(void)testGetDoubleByteOrder {
+    [self.byteBuffer setByteOrder:self.notSystemByteOrder];
+    [[[self.byteBuffer putDouble:2019.1]
+                       putDouble:-300.123]
+                       putDouble:12345.6789];
+
+    [self.byteBuffer flip];
+
+    XCTAssertEqual(2019.1, [self.byteBuffer getDouble]);
+    XCTAssertEqual(-300.123, [self.byteBuffer getDouble]);
+    XCTAssertEqual(12345.6789, [self.byteBuffer getDouble]);
+    
+    [self.byteBuffer setPosition:0];
+    // Read the data in the wrong byte order, expecting to see different values
+    [self.byteBuffer setByteOrder:self.systemByteOrder];
+    XCTAssertNotEqual(2019.1, [self.byteBuffer getDouble]);
+    XCTAssertNotEqual(-300.123, [self.byteBuffer getDouble]);
+    XCTAssertNotEqual(12345.6789, [self.byteBuffer getDouble]);
 }
 
 - (void)testGetUTF8StringWithLength {

@@ -12,79 +12,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface NSData (BYTExtension)
 /**
- * Converts the receiver to NSInteger.
- */
-@property (nonatomic, readonly) NSInteger byt_toInteger;
-/**
- * Converts the receiver to NSUInteger.
- */
-@property (nonatomic, readonly) NSUInteger byt_toUInteger;
-/**
- * Converts the receiver to short.
- */
-@property (nonatomic, readonly) short byt_toShort;
-/**
- * Converts the receiver to int8_t.
- */
-@property (nonatomic, readonly) int8_t byt_toInt8;
-/**
- * Converts the receiver to uint8_t.
- */
-@property (nonatomic, readonly) uint8_t byt_toUInt8;
-/**
- * Converts the receiver to int16_t.
- */
-@property (nonatomic, readonly) int16_t byt_toInt16;
-/**
- * Converts the receiver to uint16_t.
- */
-@property (nonatomic, readonly) uint16_t byt_toUInt16;
-/**
- * Converts the receiver to int32_t.
- */
-@property (nonatomic, readonly) int32_t byt_toInt32;
-/**
- * Converts the receiver to uint32_t.
- */
-@property (nonatomic, readonly) uint32_t byt_toUInt32;
-/**
- * Converts the receiver to int8_t.
- */
-@property (nonatomic, readonly) int64_t byt_toInt64;
-/**
- * Converts the receiver to uint64_t.
- */
-@property (nonatomic, readonly) uint64_t byt_toUInt64;
-/**
- * Converts the receiver to int.
- */
-@property (nonatomic, readonly) int byt_toInt;
-/**
- * Converts the receiver to unsigned int.
- */
-@property (nonatomic, readonly) unsigned int byt_UInt;
-/**
- * Converts the receiver to long.
- */
-@property (nonatomic, readonly) long byt_toLong;
-/**
- * Converts the receiver to long long.
- */
-@property (nonatomic, readonly) long long byt_toLongLong;
-/**
- * Converts the receiver to float.
- */
-@property (nonatomic, readonly) float byt_toFloat;
-/**
- * Converts the receiver to double.
- */
-@property (nonatomic, readonly) double byt_toDouble;
-/**
- * Converts the receiver to Byte (unsigned char) array and returns copied it.
- */
-@property (nonatomic, readonly) Byte *byt_toBytes;
-
-/**
  * Creates the instance from given NSInteger value.
  *
  * @param value A value
@@ -218,14 +145,14 @@ NS_ASSUME_NONNULL_BEGIN
  * @param loc A starting location of range.
  * @return A value.
  */
-- (NSUInteger)byt_toUIntegerWithLocation:(NSUInteger)loc;
+- (NSUInteger)byt_toUIntegerWithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to short.
  *
  * @param loc A starting location of range.
  * @return A value.
  */
-- (short)byt_toShortWithLocation:(NSUInteger)loc;
+- (short)byt_toShortWithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to int8_t.
  *
@@ -246,84 +173,84 @@ NS_ASSUME_NONNULL_BEGIN
  * @param loc A starting location of range.
  * @return A value.
  */
-- (int16_t)byt_toInt16WithLocation:(NSUInteger)loc;
+- (int16_t)byt_toInt16WithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to uint16_t.
  *
  * @param loc A starting location of range.
  * @return A value.
  */
-- (uint16_t)byt_toUInt16WithLocation:(NSUInteger)loc;
+- (uint16_t)byt_toUInt16WithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to int32_t.
  *
  * @param loc A starting location of range.
  * @return A value.
  */
-- (int32_t)byt_toInt32WithLocation:(NSUInteger)loc;
+- (int32_t)byt_toInt32WithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to uint32_t.
  *
  * @param loc A starting location of range.
  * @return A value.
  */
-- (uint32_t)byt_toUInt32WithLocation:(NSUInteger)loc;
+- (uint32_t)byt_toUInt32WithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to int64_t.
  *
  * @param loc A starting location of range.
  * @return A value.
  */
-- (int64_t)byt_toInt64WithLocation:(NSUInteger)loc;
+- (int64_t)byt_toInt64WithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to uint64_t.
  *
  * @param loc A starting location of range.
  * @return A value.
  */
-- (uint64_t)byt_toUInt64WithLocation:(NSUInteger)loc;
+- (uint64_t)byt_toUInt64WithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to int.
  *
  * @param loc A starting location of range.
  * @return A value.
  */
-- (int)byt_toIntWithLocation:(NSUInteger)loc;
+- (int)byt_toIntWithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to unsigned int.
  *
  * @param loc A starting location of range.
  * @return A value.
  */
-- (unsigned int)byt_toUIntWithLocation:(NSUInteger)loc;
+- (unsigned int)byt_toUIntWithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to long.
  *
  * @param loc A starting location of range.
  * @return A value.
  */
-- (long)byt_toLongWithLocation:(NSUInteger)loc;
+- (long)byt_toLongWithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to long long.
  *
  * @param loc A starting location of range.
  * @return A value.
  */
-- (long long)byt_toLongLongWithLocation:(NSUInteger)loc;
+- (long long)byt_toLongLongWithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to float.
  *
  * @param loc A starting location of range.
  * @return A value.
  */
-- (float)byt_toFloatWithLocation:(NSUInteger)loc;
+- (float)byt_toFloatWithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 /**
  * Converts the receiver using given starting location to double.
  *
  * @param loc A starting location of range.
  * @return A value.
  */
-- (double)byt_toDoubleWithLocation:(NSUInteger)loc;
+- (double)byt_toDoubleWithLocation:(NSUInteger)loc swapByteOrder:(BOOL)swapByteOrder;
 
 @end
 
