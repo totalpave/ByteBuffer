@@ -111,7 +111,7 @@
         int16_t number = 0x1; // Store the number 1 in a 2-byte int
         int8_t* numPtr = (int8_t*)&number; // cast the 2-byte int to 1-byte int
         // Look at the byte that the 1-byte int has. If it is 1, then we are in little endian, otherwise big endian.
-        return numPtr[0] == 1 ? CFByteOrderBigEndian : CFByteOrderLittleEndian;
+        return numPtr[0] == 1 ? CFByteOrderLittleEndian : CFByteOrderBigEndian;
     }
     else {
         return currentOrder;
